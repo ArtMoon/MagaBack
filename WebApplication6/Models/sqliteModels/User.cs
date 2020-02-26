@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace DIMON_APP.Models
+﻿namespace DIMON_APP.Models
 {
     public class User
     {

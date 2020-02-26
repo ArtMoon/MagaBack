@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using DIMON_APP.Models;
+using DIMON_APP.Models.PG;
 
 namespace DIMON_APP
 {
@@ -23,11 +23,11 @@ namespace DIMON_APP
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-          //  services.AddEntityFrameworkNpgsql().AddDbContext<MyWebApiDbContext>(
-           // opt => opt.UseNpgsql(Configuration.GetConnectionString("SqliteConnection")));
+            services.AddEntityFrameworkNpgsql().AddDbContext<PostgresDBContext>(
+                opt => opt.UseNpgsql(Configuration.GetConnectionString("PostgreSQLConnection")));
 
-            services.AddEntityFrameworkSqlite().AddDbContext<MyWebApiDbContext>(
-            opt => opt.UseSqlite(Configuration.GetConnectionString("SqliteConnection")));
+            services.AddEntityFrameworkNpgsql().AddDbContext<PGKnowlegeDBContext>(
+                opt => opt.UseNpgsql(Configuration.GetConnectionString("PostgreSQLConnection")));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

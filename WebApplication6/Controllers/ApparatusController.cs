@@ -1,6 +1,6 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using DIMON_APP.Models;
+using DIMON_APP.Models.PG;
 using System.IO;
 using System;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +11,8 @@ namespace DIMON_APP.Controllers
 
     public class ApparatusController : Controller
     {
-        private MyWebApiDbContext _context;
-
-
-        public ApparatusController(MyWebApiDbContext context)
+        private PostgresDBContext _context;
+        public ApparatusController(PostgresDBContext context)
         {
             _context = context;
         }
@@ -22,16 +20,15 @@ namespace DIMON_APP.Controllers
         [HttpGet]
         public IActionResult Apparatuses()
         {
-            return Json(_context.Apparatus);
+            return Json(_context.dm_apparatuses);
         }
 
 
         [HttpPost]
         public IActionResult Aparatuses(int id)
         {
-            return Json(_context.Apparatus.Any(x => x.Parent_id == id));
+            return Json(_context.dm_apparatuses.Any(x => x.parent_ap_id == id));
         }
-
-
+        
     }
 }
