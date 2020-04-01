@@ -3,15 +3,17 @@ using System;
 using DIMON_APP.Models.PG;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DIMON_APP.Migrations.PostgresDB
 {
     [DbContext(typeof(PostgresDBContext))]
-    partial class PostgresDBContextModelSnapshot : ModelSnapshot
+    [Migration("20200329151645_AlarmsUpd")]
+    partial class AlarmsUpd
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,10 +49,13 @@ namespace DIMON_APP.Migrations.PostgresDB
                     b.Property<int>("ap_id")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("apparatusap_id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("sens_id")
                         .HasColumnType("integer");
 
-                    b.Property<int>("sens_name")
+                    b.Property<int?>("sensorsens_id")
                         .HasColumnType("integer");
 
                     b.Property<string>("sol_text")
@@ -59,9 +64,9 @@ namespace DIMON_APP.Migrations.PostgresDB
 
                     b.HasKey("al_id");
 
-                    b.HasIndex("ap_id");
+                    b.HasIndex("apparatusap_id");
 
-                    b.HasIndex("sens_id");
+                    b.HasIndex("sensorsens_id");
 
                     b.ToTable("dm_alarms");
                 });
@@ -204,15 +209,11 @@ namespace DIMON_APP.Migrations.PostgresDB
                 {
                     b.HasOne("DIMON_APP.Models.PG.Apparatus", "apparatus")
                         .WithMany("alarms")
-                        .HasForeignKey("ap_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("apparatusap_id");
 
                     b.HasOne("DIMON_APP.Models.PG.Sensor", "sensor")
                         .WithMany("alarms")
-                        .HasForeignKey("sens_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("sensorsens_id");
                 });
 
             modelBuilder.Entity("DIMON_APP.Models.PG.Apparatus2SensLink", b =>

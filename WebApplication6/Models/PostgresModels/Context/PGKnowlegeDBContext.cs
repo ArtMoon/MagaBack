@@ -2,14 +2,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DIMON_APP.Models.PG
 {
-    public class PGKnowlegeDBContext : DbContext
+    public class PGKnowledgeDBContext : DbContext
     {
 
         public DbSet<Problem> dm_problem{get;set;}
         public DbSet<Reason> dm_reason{get;set;}
         public DbSet<Solution> dm_solution{get;set;}
 
-        public PGKnowlegeDBContext(DbContextOptions<PGKnowlegeDBContext> options)
+
+
+        public PGKnowledgeDBContext(DbContextOptions<PGKnowledgeDBContext> options)
             :base(options){}
 
           protected override void OnModelCreating(ModelBuilder modelBuilder) 

@@ -11,4 +11,5 @@ namespace DIMON_APP.Models.PG
         public Apparatus Apparatus{get;set;}
     }
 
+  
 }

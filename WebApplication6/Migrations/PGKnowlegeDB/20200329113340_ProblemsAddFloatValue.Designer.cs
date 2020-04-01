@@ -2,15 +2,17 @@
 using DIMON_APP.Models.PG;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DIMON_APP.Migrations.PGKnowlegeDB
 {
     [DbContext(typeof(PGKnowledgeDBContext))]
-    partial class PGKnowlegeDBContextModelSnapshot : ModelSnapshot
+    [Migration("20200329113340_ProblemsAddFloatValue")]
+    partial class ProblemsAddFloatValue
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,9 +72,6 @@ namespace DIMON_APP.Migrations.PGKnowlegeDB
                     b.Property<char>("rs_cond")
                         .HasColumnType("character(1)")
                         .HasMaxLength(1);
-
-                    b.Property<float>("rs_probability")
-                        .HasColumnType("real");
 
                     b.Property<string>("rs_text")
                         .HasColumnType("character varying(200)")

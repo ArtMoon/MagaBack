@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,7 +22,7 @@ namespace DIMON_APP
             services.AddEntityFrameworkNpgsql().AddDbContext<PostgresDBContext>(
                 opt => opt.UseNpgsql(Configuration.GetConnectionString("PostgreSQLConnection")));
 
-            services.AddEntityFrameworkNpgsql().AddDbContext<PGKnowlegeDBContext>(
+            services.AddEntityFrameworkNpgsql().AddDbContext<PGKnowledgeDBContext>(
                 opt => opt.UseNpgsql(Configuration.GetConnectionString("PostgreSQLConnection")));
         }
 

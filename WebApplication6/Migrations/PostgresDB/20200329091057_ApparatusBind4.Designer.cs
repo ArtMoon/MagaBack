@@ -3,15 +3,17 @@ using System;
 using DIMON_APP.Models.PG;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DIMON_APP.Migrations.PostgresDB
 {
     [DbContext(typeof(PostgresDBContext))]
-    partial class PostgresDBContextModelSnapshot : ModelSnapshot
+    [Migration("20200329091057_ApparatusBind4")]
+    partial class ApparatusBind4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,13 +51,6 @@ namespace DIMON_APP.Migrations.PostgresDB
 
                     b.Property<int>("sens_id")
                         .HasColumnType("integer");
-
-                    b.Property<int>("sens_name")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("sol_text")
-                        .HasColumnType("character varying(200)")
-                        .HasMaxLength(200);
 
                     b.HasKey("al_id");
 

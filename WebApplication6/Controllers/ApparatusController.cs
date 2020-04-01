@@ -1,10 +1,8 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using DIMON_APP.Models.PG;
-using System.IO;
 using System;
-using Microsoft.EntityFrameworkCore;
-
+using System.Threading.Tasks;
 
 namespace DIMON_APP.Controllers
 {
@@ -28,6 +26,22 @@ namespace DIMON_APP.Controllers
         public IActionResult Aparatuses(int id)
         {
             return Json(_context.dm_apparatuses.Any(x => x.parent_ap_id == id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddApparatus(Apparatus apparatus)
+        {
+            try
+            {
+                _context.dm_apparatuses.Add(apparatus);
+                await _context.SaveChangesAsync();
+                return Json("OK");
+            }
+            catch(Exception e)
+            {
+                return Json(e.Message);
+            }
+            
         }
         
     }

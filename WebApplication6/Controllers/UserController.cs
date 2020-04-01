@@ -1,8 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using DIMON_APP.Models.PG;
-using System.IO;
-using System;
+
 
 namespace DIMON_APP.Controllers
 {
@@ -17,11 +16,13 @@ namespace DIMON_APP.Controllers
         }
     
         [HttpPost]
-        public string Index(User user)
+        public IActionResult Login(User user)
         {
-            if (context.dm_users.Any(x => x.name == user.name && x.password == user.password))
-                return "Привет " + user.name;
-            else return "404";
+            var usr = context.dm_users.FirstOrDefault(x => x.name == user.name && x.password == user.password);
+            if (usr != null)
+                return Json(usr);
+            else return Json("404");
         }
+
     }
 }

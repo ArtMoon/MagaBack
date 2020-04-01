@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DIMON_APP.Migrations.PGKnowlegeDB
 {
-    [DbContext(typeof(PGKnowlegeDBContext))]
+    [DbContext(typeof(PGKnowledgeDBContext))]
     [Migration("20200226100423_Initial")]
     partial class Initial
     {

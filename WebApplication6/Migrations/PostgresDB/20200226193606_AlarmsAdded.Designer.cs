@@ -3,15 +3,17 @@ using System;
 using DIMON_APP.Models.PG;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DIMON_APP.Migrations.PostgresDB
 {
     [DbContext(typeof(PostgresDBContext))]
-    partial class PostgresDBContextModelSnapshot : ModelSnapshot
+    [Migration("20200226193606_AlarmsAdded")]
+    partial class AlarmsAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,22 +46,10 @@ namespace DIMON_APP.Migrations.PostgresDB
                     b.Property<float>("al_value")
                         .HasColumnType("real");
 
-                    b.Property<int>("ap_id")
-                        .HasColumnType("integer");
-
                     b.Property<int>("sens_id")
                         .HasColumnType("integer");
 
-                    b.Property<int>("sens_name")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("sol_text")
-                        .HasColumnType("character varying(200)")
-                        .HasMaxLength(200);
-
                     b.HasKey("al_id");
-
-                    b.HasIndex("ap_id");
 
                     b.HasIndex("sens_id");
 
@@ -202,12 +192,6 @@ namespace DIMON_APP.Migrations.PostgresDB
 
             modelBuilder.Entity("DIMON_APP.Models.PG.Alarm", b =>
                 {
-                    b.HasOne("DIMON_APP.Models.PG.Apparatus", "apparatus")
-                        .WithMany("alarms")
-                        .HasForeignKey("ap_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DIMON_APP.Models.PG.Sensor", "sensor")
                         .WithMany("alarms")
                         .HasForeignKey("sens_id")

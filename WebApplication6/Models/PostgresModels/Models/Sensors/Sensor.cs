@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations; 
-
+using System.Collections.Generic;
 namespace DIMON_APP.Models.PG
 {
     public class Sensor
@@ -8,6 +8,7 @@ namespace DIMON_APP.Models.PG
         public string sens_name{get;set;}
         public string description{get;set;}
         public Apparatus2SensLink app_link{get;set;}
+        public List<Alarm> alarms{get;set;}
     }
 
 }
