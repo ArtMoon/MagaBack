@@ -3,15 +3,17 @@ using System;
 using DIMON_APP.Models.PG;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DIMON_APP.Migrations.PGKnowlegeDB
 {
     [DbContext(typeof(PGKnowledgeDBContext))]
-    partial class PGKnowlegeDBContextModelSnapshot : ModelSnapshot
+    [Migration("20200408133958_BoundValueNull")]
+    partial class BoundValueNull
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,10 +84,10 @@ namespace DIMON_APP.Migrations.PGKnowlegeDB
                         .HasColumnType("character varying(200)")
                         .HasMaxLength(200);
 
-                    b.Property<float?>("rs_value")
+                    b.Property<float>("rs_value")
                         .HasColumnType("real");
 
-                    b.Property<int?>("sens_id")
+                    b.Property<int>("sens_id")
                         .HasColumnType("integer");
 
                     b.HasKey("rs_id");

@@ -13,7 +13,7 @@ namespace DIMON_APP.Models.PG
         [MaxLength(200)] public string al_reason{get;set;}
         [MaxLength(200)] public string al_param{get;set;}
         [MaxLength(200)] public string sol_text{get;set;}
-        public int sens_name{get;set;}
+        [MaxLength(200)] public string sens_name{get;set;}
         public int sens_id{get;set;}
         public Sensor sensor{get;set;}
         public int ap_id{get;set;}

@@ -28,18 +28,38 @@ namespace DIMON_APP.Controllers
         [HttpGet]
         public IActionResult SensorVal(int sens_id,DateTime b_d,DateTime d_e)
         {           
-            return Json((from a in _context.dm_sensor_vals where (a.sens_id == sens_id) && (a.val_date > b_d) 
-                && (a.val_date <= d_e) select a).ToList());
+            return Json(_context.dm_sensor_vals.Where((x) => x.sens_id == sens_id && b_d <= x.val_date && d_e > x.val_date ));
+        }
+
+         [HttpGet]
+        public IActionResult SensorValSens(int sens_id)
+        {           
+            return Json(_context.dm_sensor_vals.Where((x)=> x.sens_id == sens_id));
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddSensor(Sensor sensor)
+        public async Task<IActionResult> AddSensor(Sensor sensor,int ap_id)
         {
             try
             {
                 _context.dm_sensors.Add(sensor);
                 await _context.SaveChangesAsync();
-                return Json("OK");
+                return Json("200");
+            }
+            catch(Exception e)
+            {
+                return Json(e.Message);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddSensorApparatusLink(Apparatus2SensLink link)
+        {
+            try
+            {
+                _context.dm_apparatus_2_sens_link.Add(link);
+                await _context.SaveChangesAsync();
+                return Json("200");
             }
             catch(Exception e)
             {
@@ -55,7 +75,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_sensor_vals.Add(sensorVal);
                 await _context.SaveChangesAsync();
-                return Json("OK");
+                return Json("200");
             }
             catch(Exception e)
             {
