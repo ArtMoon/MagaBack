@@ -31,11 +31,11 @@ namespace DIMON_APP.Controllers
                     pr.pr_bound_value = problem.pr_bound_value;
                     pr.pr_nn = problem.pr_nn;
                     await _context.SaveChangesAsync();
-                    return Json("200");
+                    return Json(200);
                 }
                 _context.dm_problem.Add(problem);
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -58,11 +58,11 @@ namespace DIMON_APP.Controllers
                     rs.nn_rs = reason.nn_rs;
                     rs.rs_cond = reason.rs_cond;
                     await _context.SaveChangesAsync();
-                    return Json("200");
+                    return Json(200);
                 }
                 _context.dm_reason.Add(reason);
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -83,11 +83,11 @@ namespace DIMON_APP.Controllers
                     sol.sol_nn = solution.sol_nn;
                     sol.sens_id = solution.sens_id;
                     await _context.SaveChangesAsync();
-                    return Json("200");  
+                    return Json(200);  
                 }
                 _context.dm_solution.Add(solution);
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -103,7 +103,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_problem.Remove(_context.dm_problem.FirstOrDefault((x)=> x.pr_id == id));
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -119,7 +119,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_reason.Remove(_context.dm_reason.FirstOrDefault((x)=> x.rs_id == id));
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -135,7 +135,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_solution.Remove(_context.dm_solution.FirstOrDefault((x)=> x.sol_id == id));
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {

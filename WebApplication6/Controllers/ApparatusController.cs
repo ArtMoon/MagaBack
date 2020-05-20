@@ -36,7 +36,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_apparatuses.Add(apparatus);
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -52,7 +52,7 @@ namespace DIMON_APP.Controllers
             {  
                 await _context.Database.ExecuteSqlRawAsync($"call dm_get_app_problems({apID.ToString()},"+
                         $"'{dateBegin.ToString("yyyy-MM-dd hh:mm")}','{dateEnd.ToString("yyyy-MM-dd hh:mm")}')"); 
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {

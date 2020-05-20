@@ -37,3 +37,17 @@ C:\Users\79110\Desktop\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0
 C:\Users\79110\Desktop\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.AssemblyInfo.cs
 C:\Users\79110\Desktop\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.dll
 C:\Users\79110\Desktop\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.pdb
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\appsettings.Development.json
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\appsettings.json
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\bundleconfig.json
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\Properties\launchSettings.json
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\DIMON_APP.deps.json
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\DIMON_APP.runtimeconfig.json
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\DIMON_APP.runtimeconfig.dev.json
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\DIMON_APP.dll
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\bin\Debug\netcoreapp2.0\DIMON_APP.pdb
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.csprojAssemblyReference.cache
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.AssemblyInfoInputs.cache
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.AssemblyInfo.cs
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.dll
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.pdb

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\79110\\Desktop\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj": {}
+    "D:\\Lambda_core\\Отчеты\\2 курс\\2 сем\\Дисер\\ServerVM\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj": {}
   },
   "projects": {
-    "C:\\Users\\79110\\Desktop\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj": {
+    "D:\\Lambda_core\\Отчеты\\2 курс\\2 сем\\Дисер\\ServerVM\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\79110\\Desktop\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj",
+        "projectUniqueName": "D:\\Lambda_core\\Отчеты\\2 курс\\2 сем\\Дисер\\ServerVM\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj",
         "projectName": "DIMON_APP",
-        "projectPath": "C:\\Users\\79110\\Desktop\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj",
+        "projectPath": "D:\\Lambda_core\\Отчеты\\2 курс\\2 сем\\Дисер\\ServerVM\\BackEndMonitoring\\WebApplication6\\DIMON_APP.csproj",
         "packagesPath": "C:\\Users\\79110\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\79110\\Desktop\\BackEndMonitoring\\WebApplication6\\obj\\",
+        "outputPath": "D:\\Lambda_core\\Отчеты\\2 курс\\2 сем\\Дисер\\ServerVM\\BackEndMonitoring\\WebApplication6\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"

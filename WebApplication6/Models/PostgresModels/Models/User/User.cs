@@ -11,6 +11,7 @@ namespace DIMON_APP.Models.PG
         public string email{get;set;}
         public int table_num{get;set;}
         public string photo_url{get;set;}
+        public bool is_admin {get;set;}
 
     }
 }

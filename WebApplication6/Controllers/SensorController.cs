@@ -44,7 +44,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_sensors.Add(sensor);
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -59,7 +59,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_apparatus_2_sens_link.Add(link);
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
@@ -75,7 +75,7 @@ namespace DIMON_APP.Controllers
             {
                 _context.dm_sensor_vals.Add(sensorVal);
                 await _context.SaveChangesAsync();
-                return Json("200");
+                return Json(200);
             }
             catch(Exception e)
             {
