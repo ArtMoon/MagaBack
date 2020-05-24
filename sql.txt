@@ -1,0 +1,793 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 12.2
+-- Dumped by pg_dump version 12.2
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: dm_find_match_values(integer, timestamp without time zone, timestamp without time zone, real, real, "char"); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.dm_find_match_values(_sens_id integer DEFAULT 0, _date_begin timestamp without time zone DEFAULT NULL::timestamp without time zone, _date_end timestamp without time zone DEFAULT NULL::timestamp without time zone, _match_val real DEFAULT 0, _bound_val real DEFAULT NULL::real, _match_status "char" DEFAULT '='::"char")
+    LANGUAGE plpgsql
+    AS $$begin
+	drop table if exists _tmp_problem_values;
+	if _match_status = '>' then
+		if(_bound_val is null) then
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val > _match_val;
+		else
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val > _match_val
+			And val < _bound_val;
+		end if;
+	elsif _match_status = '<' then
+		if(_bound_val is null) then
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val < _match_val;
+		else
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val < _match_val
+			And val > _bound_val;
+		end if;
+	else
+		create temp table _tmp_problem_values as 
+		select val_date,sens_id,val
+		from dm_sensor_vals 
+		where val_date >= _date_begin
+		And val_date <= _date_end
+		And sens_id = _sens_id
+		And val = _match_val;
+	end if;
+end;$$;
+
+
+ALTER PROCEDURE public.dm_find_match_values(_sens_id integer, _date_begin timestamp without time zone, _date_end timestamp without time zone, _match_val real, _bound_val real, _match_status "char") OWNER TO postgres;
+
+--
+-- Name: dm_get_app_problems(integer, timestamp without time zone, timestamp without time zone); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.dm_get_app_problems(_app_id integer DEFAULT 0, _date_begin timestamp without time zone DEFAULT NULL::timestamp without time zone, _date_end timestamp without time zone DEFAULT NULL::timestamp without time zone)
+    LANGUAGE plpgsql
+    AS $$declare 
+	r record;
+	r1 record;
+	_status  "char";
+begin
+drop table if exists _tmp_ap_alarms;
+create temp table _tmp_ap_alarms(val_date timestamp without time zone,sens_id integer,val float,pr_id integer,rs_id integer);
+for r in select * from dm_problem where ap_id= _app_id
+	loop 
+		_status := r.pr_cond;
+		call dm_find_match_values(r.sens_id,_date_begin,_date_end,r.pr_value,r.pr_bound_value,_status);
+		insert into _tmp_ap_alarms 
+		select val_date,sens_id,val,r.pr_id as pr_id
+		from _tmp_problem_values;
+	end loop;
+	
+for r in select * from _tmp_ap_alarms
+	loop
+		for r1 in select * from dm_reason where pr_id = r.pr_id order by rs_probability desc
+			loop
+				if r1.sens_id is not null and  r1.sens_id > 0 then
+					_status := r1.rs_cond;
+					call dm_find_match_values(r1.sens_id,_date_begin,_date_end,r1.rs_value,null,_status);
+					if(exists(select * from _tmp_problem_values))then
+						update _tmp_ap_alarms set rs_id = r1.rs_id where val_date = r.val_date and pr_id = r.pr_id;
+						exit;
+					end if;
+				else
+					update _tmp_ap_alarms set rs_id = r1.rs_id where val_date = r.val_date and pr_id = r.pr_id;
+					exit;
+				end if;
+			end loop;	
+	end loop;
+	
+delete from dm_alarms 
+where al_date >= _date_begin
+And al_date <= _date_end;
+
+insert into dm_alarms(al_date,al_value,al_text,al_reason,al_param,sol_text,sens_name,sens_id,ap_id)
+select t1.val_date,t1.val,t2.pr_text,t3.rs_text,t4.sol_par,t4.sol_text,t5.sens_name,t5.sens_id,_app_id
+from _tmp_ap_alarms t1, dm_problem t2, dm_reason t3, dm_solution t4, dm_sensors t5
+where t1.pr_id = t2.pr_id
+And t2.pr_id = t3.pr_id
+And t3.rs_id = t4.rs_id
+And t1.sens_id = t5.sens_id
+And t4.rs_id = t1.rs_id;
+
+end;
+	
+$$;
+
+
+ALTER PROCEDURE public.dm_get_app_problems(_app_id integer, _date_begin timestamp without time zone, _date_end timestamp without time zone) OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: __EFMigrationsHistory; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL
+);
+
+
+ALTER TABLE public."__EFMigrationsHistory" OWNER TO postgres;
+
+--
+-- Name: dm_alarms; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_alarms (
+    al_id integer NOT NULL,
+    al_date timestamp without time zone NOT NULL,
+    al_value real NOT NULL,
+    al_text character varying(200),
+    al_reason character varying(200),
+    al_param character varying(200),
+    sens_id integer NOT NULL,
+    ap_id integer DEFAULT 0 NOT NULL,
+    sol_text character varying(200),
+    sens_name character varying(200)
+);
+
+
+ALTER TABLE public.dm_alarms OWNER TO postgres;
+
+--
+-- Name: dm_alarms_al_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_alarms ALTER COLUMN al_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_alarms_al_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_apparatus_2_sens_link; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_apparatus_2_sens_link (
+    rec_id integer NOT NULL,
+    sens_id integer NOT NULL,
+    ap_id integer NOT NULL
+);
+
+
+ALTER TABLE public.dm_apparatus_2_sens_link OWNER TO postgres;
+
+--
+-- Name: dm_apparatus_2_sens_link_rec_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_apparatus_2_sens_link ALTER COLUMN rec_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_apparatus_2_sens_link_rec_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_apparatus_info; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_apparatus_info (
+    ap_id integer NOT NULL,
+    description text,
+    launch_date text NOT NULL,
+    power real NOT NULL
+);
+
+
+ALTER TABLE public.dm_apparatus_info OWNER TO postgres;
+
+--
+-- Name: dm_apparatus_info_ap_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_apparatus_info ALTER COLUMN ap_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_apparatus_info_ap_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_apparatuses; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_apparatuses (
+    ap_id integer NOT NULL,
+    parent_ap_id integer NOT NULL,
+    short_name text,
+    full_name text
+);
+
+
+ALTER TABLE public.dm_apparatuses OWNER TO postgres;
+
+--
+-- Name: dm_apparatuses_ap_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_apparatuses ALTER COLUMN ap_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_apparatuses_ap_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_problem; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_problem (
+    pr_id integer NOT NULL,
+    pr_cond character varying(2),
+    sens_id integer NOT NULL,
+    pr_text character varying(200),
+    pr_color character varying(1),
+    pr_nn text,
+    ap_id integer DEFAULT 0 NOT NULL,
+    pr_value real DEFAULT 0 NOT NULL,
+    pr_bound_value real
+);
+
+
+ALTER TABLE public.dm_problem OWNER TO postgres;
+
+--
+-- Name: dm_problem_pr_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_problem ALTER COLUMN pr_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_problem_pr_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_reason; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_reason (
+    rs_id integer NOT NULL,
+    pr_id integer NOT NULL,
+    rs_text character varying(200) NOT NULL,
+    rs_cond character varying(1),
+    sens_id integer,
+    nn_rs text,
+    rs_value real,
+    rs_probability real DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.dm_reason OWNER TO postgres;
+
+--
+-- Name: dm_reason_rs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_reason ALTER COLUMN rs_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_reason_rs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_sensor_vals; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_sensor_vals (
+    val_id integer NOT NULL,
+    sens_id integer NOT NULL,
+    val real NOT NULL,
+    val_date timestamp without time zone
+);
+
+
+ALTER TABLE public.dm_sensor_vals OWNER TO postgres;
+
+--
+-- Name: dm_sensor_vals_val_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_sensor_vals ALTER COLUMN val_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_sensor_vals_val_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_sensors; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_sensors (
+    sens_id integer NOT NULL,
+    sens_name text,
+    description text
+);
+
+
+ALTER TABLE public.dm_sensors OWNER TO postgres;
+
+--
+-- Name: dm_sensors_sens_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_sensors ALTER COLUMN sens_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_sensors_sens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_solution; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_solution (
+    sol_id integer NOT NULL,
+    rs_id integer NOT NULL,
+    sol_text character varying(200),
+    sol_par character varying(120),
+    sens_id integer NOT NULL,
+    sol_nn text
+);
+
+
+ALTER TABLE public.dm_solution OWNER TO postgres;
+
+--
+-- Name: dm_solution_sol_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_solution ALTER COLUMN sol_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_solution_sol_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: dm_users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dm_users (
+    user_id integer NOT NULL,
+    name text,
+    last_name text,
+    password text,
+    email text,
+    table_num integer NOT NULL,
+    photo_url text,
+    is_admin boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.dm_users OWNER TO postgres;
+
+--
+-- Name: dm_users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.dm_users ALTER COLUMN user_id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.dm_users_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Data for Name: __EFMigrationsHistory; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."__EFMigrationsHistory" ("MigrationId", "ProductVersion") FROM stdin;
+20200225154720_Initial	3.1.1
+20200226100423_Initial	3.1.1
+20200226193606_AlarmsAdded	3.1.1
+20200329085122_ApparatusBind	3.1.1
+20200329090428_ApparatusBind2	3.1.1
+20200329091057_ApparatusBind4	3.1.1
+20200329090513_ApparatusBind3	3.1.1
+20200329111820_ApparatusBindProblems	3.1.1
+20200329113340_ProblemsAddFloatValue	3.1.1
+20200329143140_ProblemsAddProbability	3.1.1
+20200329151645_AlarmsUpd	3.1.1
+20200329151940_AlarmsUpd2	3.1.1
+20200406095532_AlarmsFix	3.1.1
+20200408133310_BoundValue	3.1.1
+20200408133958_BoundValueNull	3.1.1
+20200408171918_ReasonValueNull	3.1.1
+20200414101447_AdminMigration	3.1.1
+\.
+
+
+--
+-- Data for Name: dm_alarms; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: dm_apparatus_2_sens_link; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.dm_apparatus_2_sens_link (rec_id, sens_id, ap_id) FROM stdin;
+4	1	10
+\.
+
+
+--
+-- Data for Name: dm_apparatus_info; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.dm_apparatus_info (ap_id, description, launch_date, power) FROM stdin;
+\.
+
+
+--
+-- Data for Name: dm_apparatuses; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: dm_problem; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+--
+-- Data for Name: dm_reason; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: dm_sensor_vals; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: dm_sensors; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+--
+-- Data for Name: dm_solution; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+--
+-- Data for Name: dm_users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+
+--
+-- Name: dm_alarms_al_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_alarms_al_id_seq', 157961, true);
+
+
+--
+-- Name: dm_apparatus_2_sens_link_rec_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_apparatus_2_sens_link_rec_id_seq', 4, true);
+
+
+--
+-- Name: dm_apparatus_info_ap_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_apparatus_info_ap_id_seq', 1, false);
+
+
+--
+-- Name: dm_apparatuses_ap_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_apparatuses_ap_id_seq', 10, true);
+
+
+--
+-- Name: dm_problem_pr_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_problem_pr_id_seq', 13, true);
+
+
+--
+-- Name: dm_reason_rs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_reason_rs_id_seq', 11, true);
+
+
+--
+-- Name: dm_sensor_vals_val_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_sensor_vals_val_id_seq', 11141, true);
+
+
+--
+-- Name: dm_sensors_sens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_sensors_sens_id_seq', 2, true);
+
+
+--
+-- Name: dm_solution_sol_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_solution_sol_id_seq', 11, true);
+
+
+--
+-- Name: dm_users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dm_users_user_id_seq', 12, true);
+
+
+--
+-- Name: __EFMigrationsHistory PK___EFMigrationsHistory; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."__EFMigrationsHistory"
+    ADD CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId");
+
+
+--
+-- Name: dm_alarms PK_dm_alarms; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_alarms
+    ADD CONSTRAINT "PK_dm_alarms" PRIMARY KEY (al_id);
+
+
+--
+-- Name: dm_apparatus_2_sens_link PK_dm_apparatus_2_sens_link; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_apparatus_2_sens_link
+    ADD CONSTRAINT "PK_dm_apparatus_2_sens_link" PRIMARY KEY (rec_id);
+
+
+--
+-- Name: dm_apparatus_info PK_dm_apparatus_info; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_apparatus_info
+    ADD CONSTRAINT "PK_dm_apparatus_info" PRIMARY KEY (ap_id);
+
+
+--
+-- Name: dm_apparatuses PK_dm_apparatuses; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_apparatuses
+    ADD CONSTRAINT "PK_dm_apparatuses" PRIMARY KEY (ap_id);
+
+
+--
+-- Name: dm_problem PK_dm_problem; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_problem
+    ADD CONSTRAINT "PK_dm_problem" PRIMARY KEY (pr_id);
+
+
+--
+-- Name: dm_reason PK_dm_reason; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_reason
+    ADD CONSTRAINT "PK_dm_reason" PRIMARY KEY (rs_id);
+
+
+--
+-- Name: dm_sensor_vals PK_dm_sensor_vals; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_sensor_vals
+    ADD CONSTRAINT "PK_dm_sensor_vals" PRIMARY KEY (val_id);
+
+
+--
+-- Name: dm_sensors PK_dm_sensors; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_sensors
+    ADD CONSTRAINT "PK_dm_sensors" PRIMARY KEY (sens_id);
+
+
+--
+-- Name: dm_solution PK_dm_solution; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_solution
+    ADD CONSTRAINT "PK_dm_solution" PRIMARY KEY (sol_id);
+
+
+--
+-- Name: dm_users PK_dm_users; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_users
+    ADD CONSTRAINT "PK_dm_users" PRIMARY KEY (user_id);
+
+
+--
+-- Name: IX_dm_alarms_ap_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_dm_alarms_ap_id" ON public.dm_alarms USING btree (ap_id);
+
+
+--
+-- Name: IX_dm_alarms_sens_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_dm_alarms_sens_id" ON public.dm_alarms USING btree (sens_id);
+
+
+--
+-- Name: IX_dm_apparatus_2_sens_link_ap_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_dm_apparatus_2_sens_link_ap_id" ON public.dm_apparatus_2_sens_link USING btree (ap_id);
+
+
+--
+-- Name: IX_dm_apparatus_2_sens_link_sens_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX "IX_dm_apparatus_2_sens_link_sens_id" ON public.dm_apparatus_2_sens_link USING btree (sens_id);
+
+
+--
+-- Name: IX_dm_reason_pr_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_dm_reason_pr_id" ON public.dm_reason USING btree (pr_id);
+
+
+--
+-- Name: IX_dm_solution_rs_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_dm_solution_rs_id" ON public.dm_solution USING btree (rs_id);
+
+
+--
+-- Name: dm_alarms FK_dm_alarms_dm_apparatuses_ap_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_alarms
+    ADD CONSTRAINT "FK_dm_alarms_dm_apparatuses_ap_id" FOREIGN KEY (ap_id) REFERENCES public.dm_apparatuses(ap_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dm_alarms FK_dm_alarms_dm_sensors_sens_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_alarms
+    ADD CONSTRAINT "FK_dm_alarms_dm_sensors_sens_id" FOREIGN KEY (sens_id) REFERENCES public.dm_sensors(sens_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dm_apparatus_2_sens_link FK_dm_apparatus_2_sens_link_dm_apparatuses_ap_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_apparatus_2_sens_link
+    ADD CONSTRAINT "FK_dm_apparatus_2_sens_link_dm_apparatuses_ap_id" FOREIGN KEY (ap_id) REFERENCES public.dm_apparatuses(ap_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dm_apparatus_2_sens_link FK_dm_apparatus_2_sens_link_dm_sensors_sens_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_apparatus_2_sens_link
+    ADD CONSTRAINT "FK_dm_apparatus_2_sens_link_dm_sensors_sens_id" FOREIGN KEY (sens_id) REFERENCES public.dm_sensors(sens_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dm_reason FK_dm_reason_dm_problem_pr_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_reason
+    ADD CONSTRAINT "FK_dm_reason_dm_problem_pr_id" FOREIGN KEY (pr_id) REFERENCES public.dm_problem(pr_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dm_solution FK_dm_solution_dm_reason_rs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dm_solution
+    ADD CONSTRAINT "FK_dm_solution_dm_reason_rs_id" FOREIGN KEY (rs_id) REFERENCES public.dm_reason(rs_id) ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
