@@ -1,0 +1,121 @@
+DROP PROCEDURE public.dm_find_match_values(integer, timestamp without time zone, timestamp without time zone, real, real, "char");
+
+CREATE OR REPLACE PROCEDURE public.dm_find_match_values(
+	_sens_id integer DEFAULT 0,
+	_date_begin timestamp without time zone DEFAULT NULL::timestamp without time zone,
+	_date_end timestamp without time zone DEFAULT NULL::timestamp without time zone,
+	_match_val real DEFAULT 0,
+	_bound_val real DEFAULT NULL::real,
+	_match_status "char" DEFAULT '='::"char")
+LANGUAGE 'plpgsql'
+
+AS $BODY$begin
+	drop table if exists _tmp_problem_values;
+	if _match_status = '>' then
+		if(_bound_val is null) then
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val > _match_val;
+		else
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val > _match_val
+			And val < _bound_val;
+		end if;
+	elsif _match_status = '<' then
+		if(_bound_val is null) then
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val < _match_val;
+		else
+			create temp table _tmp_problem_values as 
+			select val_date,sens_id,val
+			from dm_sensor_vals 
+			where val_date >= _date_begin
+			And val_date <= _date_end
+			And sens_id = _sens_id
+			And val < _match_val
+			And val > _bound_val;
+		end if;
+	else
+		create temp table _tmp_problem_values as 
+		select val_date,sens_id,val
+		from dm_sensor_vals 
+		where val_date >= _date_begin
+		And val_date <= _date_end
+		And sens_id = _sens_id
+		And val = _match_val;
+	end if;
+end;$BODY$;
+
+
+DROP PROCEDURE public.dm_get_app_problems(integer, timestamp without time zone, timestamp without time zone);
+
+CREATE OR REPLACE PROCEDURE public.dm_get_app_problems(
+	_app_id integer DEFAULT 0,
+	_date_begin timestamp without time zone DEFAULT NULL::timestamp without time zone,
+	_date_end timestamp without time zone DEFAULT NULL::timestamp without time zone)
+LANGUAGE 'plpgsql'
+
+AS $BODY$declare 
+	r record;
+	r1 record;
+	_status  "char";
+begin
+drop table if exists _tmp_ap_alarms;
+create temp table _tmp_ap_alarms(val_date timestamp without time zone,sens_id integer,val float,pr_id integer,rs_id integer);
+for r in select * from dm_problem where ap_id= _app_id
+	loop 
+		_status := r.pr_cond;
+		call dm_find_match_values(r.sens_id,_date_begin,_date_end,r.pr_value,r.pr_bound_value,_status);
+		insert into _tmp_ap_alarms 
+		select val_date,sens_id,val,r.pr_id as pr_id
+		from _tmp_problem_values;
+	end loop;
+	
+for r in select * from _tmp_ap_alarms
+	loop
+		for r1 in select * from dm_reason where pr_id = r.pr_id order by rs_probability desc
+			loop
+				if r1.sens_id is not null and  r1.sens_id > 0 then
+					_status := r1.rs_cond;
+					call dm_find_match_values(r1.sens_id,_date_begin,_date_end,r1.rs_value,null,_status);
+					if(exists(select * from _tmp_problem_values))then
+						update _tmp_ap_alarms set rs_id = r1.rs_id where val_date = r.val_date and pr_id = r.pr_id;
+						exit;
+					end if;
+				else
+					update _tmp_ap_alarms set rs_id = r1.rs_id where val_date = r.val_date and pr_id = r.pr_id;
+					exit;
+				end if;
+			end loop;	
+	end loop;
+	
+delete from dm_alarms 
+where al_date >= _date_begin
+And al_date <= _date_end;
+
+insert into dm_alarms(al_date,al_value,al_text,al_reason,al_param,sol_text,sens_name,sens_id,ap_id)
+select t1.val_date,t1.val,t2.pr_text,t3.rs_text,t4.sol_par,t4.sol_text,t5.sens_name,t5.sens_id,_app_id
+from _tmp_ap_alarms t1, dm_problem t2, dm_reason t3, dm_solution t4, dm_sensors t5
+where t1.pr_id = t2.pr_id
+And t2.pr_id = t3.pr_id
+And t3.rs_id = t4.rs_id
+And t1.sens_id = t5.sens_id
+And t4.rs_id = t1.rs_id;
+
+end;
+	
+$BODY$;
