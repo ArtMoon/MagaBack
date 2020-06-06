@@ -51,3 +51,5 @@ D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonit
 D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.AssemblyInfo.cs
 D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.dll
 D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.pdb
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.csproj.CoreCompileInputs.cache
+D:\Lambda_core\Отчеты\2 курс\2 сем\Дисер\ServerVM\BackEndMonitoring\WebApplication6\obj\Debug\netcoreapp2.0\DIMON_APP.genruntimeconfig.cache

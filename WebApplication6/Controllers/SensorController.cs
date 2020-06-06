@@ -42,8 +42,28 @@ namespace DIMON_APP.Controllers
         {
             try
             {
-                _context.dm_sensors.Add(sensor);
-                await _context.SaveChangesAsync();
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        _context.dm_sensors.Add(sensor);
+                        await _context.SaveChangesAsync();
+                        await _context.Entry(sensor).GetDatabaseValuesAsync();
+                        var link = new Apparatus2SensLink();
+                        link.ap_id = ap_id;
+                        link.sens_id = sensor.sens_id;
+                        _context.dm_apparatus_2_sens_link.Add(link);
+                        await _context.SaveChangesAsync();
+                        transaction.Commit();
+                    }
+                    catch(Exception e)
+                    {
+                        
+                        transaction.Rollback();
+                        return Json(e.Message);
+                    }
+                }
+                
                 return Json(200);
             }
             catch(Exception e)
